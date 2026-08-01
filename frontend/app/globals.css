@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+@theme {
+  /* Kairos Hub design tokens
+     「好機・然るべき時」を表す社名Kairosから、日時計/測定器のような
+     精密さと、古典的な信頼感を軸にした配色。 */
+  --color-ink: #1c2340;         /* 深藍 - ヘッダー/見出し */
+  --color-ink-soft: #3a4269;    /* 藍のセカンダリ */
+  --color-brass: #b8923f;       /* 真鍮 - アクセント（信頼・実績のマーカー） */
+  --color-brass-soft: #e8dcc0;  /* 真鍮の淡色 */
+  --color-paper: #f6f4ee;       /* 紙・背景 */
+  --color-paper-raised: #ffffff;
+  --color-line: #dcd6c8;        /* 罫線 */
+  --color-ink-muted: #6b7099;
+
+  --font-display: var(--font-fraunces), ui-serif, Georgia, serif;
+  --font-body: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+}
+
+body {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
