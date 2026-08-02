@@ -34,6 +34,7 @@ jobs:
       - name: Test (pytest, SQLite)
         env:
           DATABASE_URL: "sqlite:///./ci_test.db"
+          UPLOAD_DIR: "./ci_uploads"
         run: pytest tests/ -v
 
   frontend:
