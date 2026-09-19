@@ -1,0 +1,39 @@
+# Render デプロイ設定（バックエンド / FastAPI）
+#
+# このファイルをリポジトリ直下に置くと、Render の Blueprint 機能で
+# 設定を自動読み込みできる。手動でWeb Serviceを作る場合は、
+# 下記の buildCommand / startCommand / envVars を管理画面に転記すればよい。
+#
+# 無料枠(Free)で運用可能。ただし一定時間アクセスがないとスリープし、
+# 次のアクセス時に起動に数十秒かかる点に注意（デモ用途では許容範囲）。
+
+services:
+  - type: web
+    name: kairos-hub-api
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: "pip install -r requirements.txt"
+    # Render は $PORT を注入する。それに合わせて uvicorn を起動する。
+    startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    healthCheckPath: /health
+    envVars:
+      # DATABASE_URL は Supabase の接続文字列を管理画面で設定する（sync: false）
+      - key: DATABASE_URL
+        sync: false
+      # JWT_SECRET_KEY は本番用のランダム値をRenderに自動生成させる
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: JWT_ALGORITHM
+        value: HS256
+      - key: JWT_EXPIRE_MINUTES
+        value: "10080"
+      - key: UPLOAD_DIR
+        value: "/tmp/uploads"
+      # CORS_ORIGINS はフロント(Vercel)のURLを管理画面で設定する（sync: false）
+      # 例: ["https://kairos-hub.vercel.app"]
+      - key: CORS_ORIGINS
+        sync: false
+      # GitHub README取得のレート制限緩和用トークン（任意）
+      - key: GITHUB_API_TOKEN
+        sync: false

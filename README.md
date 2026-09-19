@@ -138,7 +138,13 @@ npm run build
 |---|---|---|
 | `API_URL` | バックエンドAPIのURL（サーバーサイドから参照） | `http://localhost:8000` |
 
-## 本番デプロイ（AWS ECS）
+## 本番デプロイ
+
+### 推奨：無料構成（Vercel + Render + Supabase）
+
+月額$0で公開URLを稼働させる手順を [`docs/DEPLOY.md`](docs/DEPLOY.md) にまとめている。フロントをVercel、APIをRender、DBをSupabaseの各無料枠にデプロイする構成で、コードの改変は不要（環境変数の設定のみ）。まず動くURLを用意したい場合はこちらを参照。
+
+### 将来：AWS ECS 構成
 
 Docker化まではこのリポジトリで完結しているが、ECSへの実デプロイ（タスク定義・ALB・RDS構築など）は別途、AWSアカウントを保有するメンバーが実施する。基本方針:
 
