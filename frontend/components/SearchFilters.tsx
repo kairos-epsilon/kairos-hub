@@ -42,7 +42,7 @@ export function SearchFilters({ availableTags }: { availableTags: string[] }) {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="キーワードで検索（タイトル・説明文）"
+          placeholder="案件名・クライアント・担当者で検索"
           className="w-full max-w-md rounded-sm border border-[var(--color-line)] bg-[var(--color-paper-raised)] px-4 py-2 text-sm text-[var(--color-ink)] placeholder:text-[var(--color-ink-muted)] focus:border-[var(--color-brass)] focus:outline-none"
         />
         <button

@@ -8,6 +8,7 @@ from sqlalchemy import (
     DateTime,
     Enum,
     ForeignKey,
+    Integer,
     String,
     Table,
     Text,
@@ -64,14 +65,22 @@ class Work(Base):
     __tablename__ = "works"
 
     id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
-    title = Column(String(200), nullable=False)
+    title = Column(String(200), nullable=False)  # 案件名
     category = Column(Enum(WorkCategory), nullable=False)
-    client_industry = Column(String(100), nullable=True)
-    description = Column(Text, nullable=True)
-    public_url = Column(String(500), nullable=True)
-    github_url = Column(String(500), nullable=True)
-    thumbnail_url = Column(String(500), nullable=True)
-    is_published = Column(Boolean, default=False, nullable=False)
+    client_name = Column(String(200), nullable=True)  # クライアント名
+    client_industry = Column(String(100), nullable=True)  # クライアント業種（任意）
+    description = Column(Text, nullable=True)  # 案件概要
+    sales_rep = Column(String(100), nullable=True)  # 営業担当
+    tech_rep = Column(String(100), nullable=True)  # 技術担当
+    amount = Column(Integer, nullable=True)  # 受注金額（円）
+    ordered_at = Column(String(20), nullable=True)  # 受注時期（例: 2026-07 / 2026年7月）
+    delivered_at = Column(String(20), nullable=True)  # 納品時期
+    public_url = Column(String(500), nullable=True)  # 納品URL
+    data_url = Column(String(500), nullable=True)  # 関連データURL（ドライブ等の場所メモ）
+    github_url = Column(String(500), nullable=True)  # GitHub URL（任意）
+    thumbnail_url = Column(String(500), nullable=True)  # サムネイル（任意）
+    memo = Column(Text, nullable=True)  # メモ・備考（進行中の連絡事項もここ）
+    is_published = Column(Boolean, default=True, nullable=False)  # 台帳では既定で表示
 
     created_by_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(UTC))

@@ -42,14 +42,25 @@ function buildWorkPayload(formData: FormData) {
     .map((t) => t.trim())
     .filter(Boolean);
 
+  const amountRaw = String(formData.get("amount") ?? "").replace(/[,\s]/g, "");
+  const amount = amountRaw ? Number(amountRaw) : null;
+
   return {
     title: String(formData.get("title") ?? ""),
     category: String(formData.get("category") ?? "lp"),
+    client_name: String(formData.get("client_name") ?? "") || null,
     client_industry: String(formData.get("client_industry") ?? "") || null,
     description: String(formData.get("description") ?? "") || null,
+    sales_rep: String(formData.get("sales_rep") ?? "") || null,
+    tech_rep: String(formData.get("tech_rep") ?? "") || null,
+    amount: Number.isFinite(amount) ? amount : null,
+    ordered_at: String(formData.get("ordered_at") ?? "") || null,
+    delivered_at: String(formData.get("delivered_at") ?? "") || null,
     public_url: String(formData.get("public_url") ?? "") || null,
+    data_url: String(formData.get("data_url") ?? "") || null,
     github_url: String(formData.get("github_url") ?? "") || null,
     thumbnail_url: String(formData.get("thumbnail_url") ?? "") || null,
+    memo: String(formData.get("memo") ?? "") || null,
     is_published: formData.get("is_published") === "on",
     tag_names: tagNames,
   };

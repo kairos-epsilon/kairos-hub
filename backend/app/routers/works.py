@@ -21,7 +21,15 @@ def list_works(
 
     if q:
         like = f"%{q}%"
-        query = query.filter(or_(Work.title.ilike(like), Work.description.ilike(like)))
+        query = query.filter(
+            or_(
+                Work.title.ilike(like),
+                Work.description.ilike(like),
+                Work.client_name.ilike(like),
+                Work.sales_rep.ilike(like),
+                Work.tech_rep.ilike(like),
+            )
+        )
 
     if category:
         query = query.filter(Work.category == category)

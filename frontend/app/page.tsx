@@ -30,10 +30,10 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
           Kairos Works Archive
         </p>
         <h1 className="mt-2 font-display text-3xl italic text-[var(--color-ink)]">
-          制作実績を、然るべき時に取り出せる棚へ。
+          Kairosの仕事の軌跡を、ひとつの台帳に。
         </h1>
         <p className="mt-3 text-sm text-[var(--color-ink-soft)]">
-          KairosがこれまでにLP・コーポレートサイト・システム開発として手がけた実績を、技術タグと検索で横断的に確認できます。
+          これまでに受注・納品した案件を、クライアント・担当者・技術タグで横断的に検索・参照できます。
         </p>
       </div>
 

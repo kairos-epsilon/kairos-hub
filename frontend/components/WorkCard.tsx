@@ -38,8 +38,20 @@ export function WorkCard({ work }: { work: Work }) {
           {work.title}
         </h3>
 
+        {work.client_name && (
+          <p className="font-mono text-xs text-[var(--color-ink-soft)]">{work.client_name}</p>
+        )}
+
         {work.description && (
           <p className="line-clamp-2 text-sm text-[var(--color-ink-soft)]">{work.description}</p>
+        )}
+
+        {(work.sales_rep || work.tech_rep || work.amount != null) && (
+          <div className="flex flex-wrap gap-x-4 gap-y-1 font-mono text-[11px] text-[var(--color-ink-muted)]">
+            {work.sales_rep && <span>営業: {work.sales_rep}</span>}
+            {work.tech_rep && <span>技術: {work.tech_rep}</span>}
+            {work.amount != null && <span>¥{work.amount.toLocaleString("ja-JP")}</span>}
+          </div>
         )}
 
         {work.tags.length > 0 && (

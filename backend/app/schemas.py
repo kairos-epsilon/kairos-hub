@@ -39,12 +39,20 @@ class TagOut(BaseModel):
 class WorkBase(BaseModel):
     title: str
     category: WorkCategory
+    client_name: str | None = None
     client_industry: str | None = None
     description: str | None = None
+    sales_rep: str | None = None
+    tech_rep: str | None = None
+    amount: int | None = None
+    ordered_at: str | None = None
+    delivered_at: str | None = None
     public_url: str | None = None
+    data_url: str | None = None
     github_url: str | None = None
     thumbnail_url: str | None = None
-    is_published: bool = False
+    memo: str | None = None
+    is_published: bool = True
 
 
 class WorkCreate(WorkBase):
@@ -54,11 +62,19 @@ class WorkCreate(WorkBase):
 class WorkUpdate(BaseModel):
     title: str | None = None
     category: WorkCategory | None = None
+    client_name: str | None = None
     client_industry: str | None = None
     description: str | None = None
+    sales_rep: str | None = None
+    tech_rep: str | None = None
+    amount: int | None = None
+    ordered_at: str | None = None
+    delivered_at: str | None = None
     public_url: str | None = None
+    data_url: str | None = None
     github_url: str | None = None
     thumbnail_url: str | None = None
+    memo: str | None = None
     is_published: bool | None = None
     tag_names: list[str] | None = None
 
@@ -69,11 +85,19 @@ class WorkOut(BaseModel):
     id: str
     title: str
     category: WorkCategory
+    client_name: str | None
     client_industry: str | None
     description: str | None
+    sales_rep: str | None
+    tech_rep: str | None
+    amount: int | None
+    ordered_at: str | None
+    delivered_at: str | None
     public_url: str | None
+    data_url: str | None
     github_url: str | None
     thumbnail_url: str | None
+    memo: str | None
     is_published: bool
     created_at: datetime
     updated_at: datetime

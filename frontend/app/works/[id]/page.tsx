@@ -40,6 +40,12 @@ export default async function WorkDetailPage({ params }: { params: Params }) {
 
         <h1 className="mt-3 font-display text-3xl italic text-[var(--color-ink)]">{work.title}</h1>
 
+        {work.client_name && (
+          <p className="mt-2 font-mono text-sm text-[var(--color-ink-soft)]">
+            {work.client_name}
+          </p>
+        )}
+
         {work.description && (
           <p className="mt-4 max-w-2xl text-sm leading-relaxed text-[var(--color-ink-soft)]">
             {work.description}
@@ -59,6 +65,25 @@ export default async function WorkDetailPage({ params }: { params: Params }) {
           </div>
         )}
 
+        {/* --- 案件管理情報 --- */}
+        <div className="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-sm border border-[var(--color-line)] bg-[var(--color-line)] sm:grid-cols-3">
+          {[
+            { label: "営業担当", value: work.sales_rep },
+            { label: "技術担当", value: work.tech_rep },
+            { label: "受注金額", value: work.amount != null ? `¥${work.amount.toLocaleString("ja-JP")}` : null },
+            { label: "受注時期", value: work.ordered_at },
+            { label: "納品時期", value: work.delivered_at },
+            { label: "業種", value: work.client_industry },
+          ].map((item) => (
+            <div key={item.label} className="bg-[var(--color-paper-raised)] px-4 py-3">
+              <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--color-brass)]">
+                {item.label}
+              </p>
+              <p className="mt-1 text-sm text-[var(--color-ink)]">{item.value || "—"}</p>
+            </div>
+          ))}
+        </div>
+
         <div className="mt-6 flex flex-wrap gap-3">
           {work.public_url && (
             <a
@@ -67,7 +92,17 @@ export default async function WorkDetailPage({ params }: { params: Params }) {
               rel="noopener noreferrer"
               className="rounded-sm bg-[var(--color-ink)] px-4 py-2 font-mono text-sm text-[var(--color-paper)] hover:bg-[var(--color-ink-soft)]"
             >
-              サイトを見る ↗
+              納品物を見る ↗
+            </a>
+          )}
+          {work.data_url && (
+            <a
+              href={work.data_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-sm border border-[var(--color-line)] px-4 py-2 font-mono text-sm text-[var(--color-ink-soft)] hover:border-[var(--color-brass)] hover:text-[var(--color-ink)]"
+            >
+              関連データ ↗
             </a>
           )}
           {work.github_url && (
@@ -77,10 +112,21 @@ export default async function WorkDetailPage({ params }: { params: Params }) {
               rel="noopener noreferrer"
               className="rounded-sm border border-[var(--color-line)] px-4 py-2 font-mono text-sm text-[var(--color-ink-soft)] hover:border-[var(--color-brass)] hover:text-[var(--color-ink)]"
             >
-              GitHubを見る ↗
+              GitHub ↗
             </a>
           )}
         </div>
+
+        {work.memo && (
+          <div className="mt-8 rounded-sm border border-[var(--color-line)] bg-[var(--color-paper)] p-5">
+            <p className="font-mono text-[11px] uppercase tracking-[0.15em] text-[var(--color-ink-muted)]">
+              メモ・備考
+            </p>
+            <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-[var(--color-ink-soft)]">
+              {work.memo}
+            </p>
+          </div>
+        )}
 
         {work.thumbnail_url && (
           // eslint-disable-next-line @next/next/no-img-element

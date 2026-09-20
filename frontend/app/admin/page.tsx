@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 import { getToken } from "@/lib/session";
 import { deleteWorkAction } from "@/app/actions";
-import { CATEGORY_LABELS, type Work } from "@/lib/types";
+import { type Work } from "@/lib/types";
 
 export default async function AdminDashboardPage() {
   const token = await getToken();
@@ -30,38 +30,37 @@ export default async function AdminDashboardPage() {
         </Link>
       </div>
 
-      <div className="mt-8 overflow-hidden rounded-sm border border-[var(--color-line)]">
+      <div className="mt-8 overflow-x-auto rounded-sm border border-[var(--color-line)]">
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-[var(--color-line)] bg-[var(--color-paper)] font-mono text-[11px] uppercase tracking-wide text-[var(--color-ink-muted)]">
-              <th className="px-4 py-3">タイトル</th>
-              <th className="px-4 py-3">カテゴリ</th>
-              <th className="px-4 py-3">公開状態</th>
-              <th className="px-4 py-3">更新日</th>
+              <th className="px-4 py-3">案件名</th>
+              <th className="px-4 py-3">クライアント</th>
+              <th className="px-4 py-3">営業</th>
+              <th className="px-4 py-3">技術</th>
+              <th className="px-4 py-3 text-right">金額</th>
+              <th className="px-4 py-3">納品</th>
               <th className="px-4 py-3 text-right">操作</th>
             </tr>
           </thead>
           <tbody>
             {works.map((work) => (
               <tr key={work.id} className="border-b border-[var(--color-line)] last:border-b-0">
-                <td className="px-4 py-3 text-[var(--color-ink)]">{work.title}</td>
-                <td className="px-4 py-3 font-mono text-xs text-[var(--color-ink-soft)]">
-                  {CATEGORY_LABELS[work.category]}
+                <td className="px-4 py-3 text-[var(--color-ink)]">
+                  {work.title}
+                  {!work.is_published && (
+                    <span className="ml-2 rounded-sm bg-[var(--color-paper)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--color-ink-muted)]">
+                      非表示
+                    </span>
+                  )}
                 </td>
-                <td className="px-4 py-3">
-                  <span
-                    className={`rounded-sm px-2 py-0.5 font-mono text-[11px] ${
-                      work.is_published
-                        ? "bg-[var(--color-brass-soft)] text-[var(--color-ink)]"
-                        : "bg-[var(--color-paper)] text-[var(--color-ink-muted)]"
-                    }`}
-                  >
-                    {work.is_published ? "公開中" : "非公開"}
-                  </span>
+                <td className="px-4 py-3 text-[var(--color-ink-soft)]">{work.client_name ?? "—"}</td>
+                <td className="px-4 py-3 font-mono text-xs text-[var(--color-ink-soft)]">{work.sales_rep ?? "—"}</td>
+                <td className="px-4 py-3 font-mono text-xs text-[var(--color-ink-soft)]">{work.tech_rep ?? "—"}</td>
+                <td className="px-4 py-3 text-right font-mono text-xs text-[var(--color-ink-soft)]">
+                  {work.amount != null ? `¥${work.amount.toLocaleString("ja-JP")}` : "—"}
                 </td>
-                <td className="px-4 py-3 font-mono text-xs text-[var(--color-ink-muted)]">
-                  {new Date(work.updated_at).toLocaleDateString("ja-JP")}
-                </td>
+                <td className="px-4 py-3 font-mono text-xs text-[var(--color-ink-muted)]">{work.delivered_at ?? "—"}</td>
                 <td className="px-4 py-3 text-right">
                   <div className="flex justify-end gap-3">
                     <Link
@@ -84,7 +83,7 @@ export default async function AdminDashboardPage() {
             ))}
             {works.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-[var(--color-ink-muted)]">
+                <td colSpan={7} className="px-4 py-8 text-center text-[var(--color-ink-muted)]">
                   まだ実績が登録されていません。
                 </td>
               </tr>
