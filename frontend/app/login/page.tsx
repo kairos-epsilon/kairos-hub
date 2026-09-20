@@ -6,7 +6,7 @@ export default function LoginPage() {
       <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--color-brass)]">
         Kairos Hub
       </p>
-      <h1 className="mt-2 font-display text-2xl italic text-[var(--color-ink)]">
+      <h1 className="mt-2 font-display text-2xl text-[var(--color-ink)]">
         関係者ログイン
       </h1>
       <p className="mt-2 text-sm text-[var(--color-ink-soft)]">

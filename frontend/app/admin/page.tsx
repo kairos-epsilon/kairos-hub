@@ -18,7 +18,7 @@ export default async function AdminDashboardPage() {
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--color-brass)]">
             Admin
           </p>
-          <h1 className="mt-2 font-display text-2xl italic text-[var(--color-ink)]">
+          <h1 className="mt-2 font-display text-2xl text-[var(--color-ink)]">
             実績管理ダッシュボード
           </h1>
         </div>

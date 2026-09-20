@@ -9,7 +9,7 @@ export async function Header() {
     <header className="border-b border-[var(--color-line)] bg-[var(--color-paper-raised)]">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
         <Link href="/" className="flex items-baseline gap-2">
-          <span className="font-display text-2xl italic tracking-tight text-[var(--color-ink)]">
+          <span className="font-display text-xl tracking-tight text-[var(--color-ink)]">
             Kairos Hub
           </span>
           <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--color-ink-muted)]">

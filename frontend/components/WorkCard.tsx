@@ -17,7 +17,9 @@ export function WorkCard({ work }: { work: Work }) {
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center">
-            <span className="font-display text-4xl italic text-[var(--color-brass)]">K</span>
+            <span className="font-mono text-xs uppercase tracking-[0.15em] text-[var(--color-ink-muted)]">
+              {CATEGORY_LABELS[work.category]}
+            </span>
           </div>
         )}
       </div>

@@ -21,7 +21,7 @@ export default async function EditWorkPage({ params }: { params: Params }) {
       <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--color-brass)]">
         Admin
       </p>
-      <h1 className="mt-2 font-display text-2xl italic text-[var(--color-ink)]">実績編集</h1>
+      <h1 className="mt-2 font-display text-2xl text-[var(--color-ink)]">実績編集</h1>
 
       <div className="mt-8">
         <WorkForm action={updateAction} initialWork={work} submitLabel="更新する" />

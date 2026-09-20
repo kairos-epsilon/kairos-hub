@@ -26,14 +26,11 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
   return (
     <div className="mx-auto max-w-6xl px-6 py-12">
       <div className="mb-10 max-w-2xl">
-        <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--color-brass)]">
-          Kairos Works Archive
-        </p>
-        <h1 className="mt-2 font-display text-3xl italic text-[var(--color-ink)]">
-          Kairosの仕事の軌跡を、ひとつの台帳に。
+        <h1 className="font-display text-2xl text-[var(--color-ink)]">
+          実績管理
         </h1>
-        <p className="mt-3 text-sm text-[var(--color-ink-soft)]">
-          これまでに受注・納品した案件を、クライアント・担当者・技術タグで横断的に検索・参照できます。
+        <p className="mt-2 text-sm text-[var(--color-ink-soft)]">
+          受注・納品した案件の記録。案件名・クライアント・担当者で検索できます。
         </p>
       </div>
 

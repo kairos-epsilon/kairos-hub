@@ -38,7 +38,7 @@ export default async function WorkDetailPage({ params }: { params: Params }) {
           )}
         </div>
 
-        <h1 className="mt-3 font-display text-3xl italic text-[var(--color-ink)]">{work.title}</h1>
+        <h1 className="mt-3 font-display text-2xl text-[var(--color-ink)]">{work.title}</h1>
 
         {work.client_name && (
           <p className="mt-2 font-mono text-sm text-[var(--color-ink-soft)]">
