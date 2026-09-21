@@ -61,3 +61,29 @@ def auth_headers(client, admin_user):
     assert r.status_code == 200
     token = r.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
+
+
+def _make_user(email, name, role, password="testpass123"):
+    db = TestingSessionLocal()
+    db.add(User(email=email, password_hash=hash_password(password), name=name, role=role))
+    db.commit()
+    db.close()
+    return {"email": email, "password": password}
+
+
+def _headers_for(client, creds):
+    r = client.post("/api/auth/login", json=creds)
+    assert r.status_code == 200
+    return {"Authorization": f"Bearer {r.json()['access_token']}"}
+
+
+@pytest.fixture
+def sales_headers(client):
+    creds = _make_user("sales@example.com", "営業担当", "sales")
+    return _headers_for(client, creds)
+
+
+@pytest.fixture
+def prod_headers(client):
+    creds = _make_user("prod@example.com", "制作担当", "production")
+    return _headers_for(client, creds)

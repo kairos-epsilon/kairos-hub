@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, ApiError } from "@/lib/api";
 import { getToken } from "@/lib/session";
 import { deleteWorkAction } from "@/app/actions";
 import { type Work } from "@/lib/types";
@@ -9,7 +9,16 @@ export default async function AdminDashboardPage() {
   const token = await getToken();
   if (!token) redirect("/login");
 
-  const works = await apiFetch<Work[]>("/api/admin/works", { token });
+  let works: Work[];
+  try {
+    works = await apiFetch<Work[]>("/api/admin/works", { token });
+  } catch (err) {
+    // 制作アカウントは管理画面にアクセスできない（403）→ 一覧へ
+    if (err instanceof ApiError && err.status === 403) {
+      redirect("/");
+    }
+    throw err;
+  }
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-12">

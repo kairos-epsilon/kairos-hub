@@ -1,9 +1,12 @@
 import Link from "next/link";
-import { getToken } from "@/lib/session";
+import { getCurrentUser } from "@/lib/session";
 import { logoutAction } from "@/app/actions";
+import { ROLE_LABELS } from "@/lib/types";
+
+const WORK_EDITOR_ROLES = ["admin", "sales", "editor"];
 
 export async function Header() {
-  const token = await getToken();
+  const user = await getCurrentUser();
 
   return (
     <header className="border-b border-[var(--color-line)] bg-[var(--color-paper-raised)]">
@@ -18,14 +21,19 @@ export async function Header() {
         </Link>
 
         <nav className="flex items-center gap-6 font-mono text-sm">
-          <Link href="/" className="text-[var(--color-ink-soft)] hover:text-[var(--color-ink)]">
-            実績一覧
-          </Link>
-          {token ? (
+          {user ? (
             <>
-              <Link href="/admin" className="text-[var(--color-ink-soft)] hover:text-[var(--color-ink)]">
-                管理画面
+              <Link href="/" className="text-[var(--color-ink-soft)] hover:text-[var(--color-ink)]">
+                実績一覧
               </Link>
+              {WORK_EDITOR_ROLES.includes(user.role) && (
+                <Link href="/admin" className="text-[var(--color-ink-soft)] hover:text-[var(--color-ink)]">
+                  管理画面
+                </Link>
+              )}
+              <span className="rounded-sm bg-[var(--color-paper)] px-2 py-1 text-[11px] text-[var(--color-ink-muted)]">
+                {ROLE_LABELS[user.role]}・{user.name}
+              </span>
               <form action={logoutAction}>
                 <button
                   type="submit"

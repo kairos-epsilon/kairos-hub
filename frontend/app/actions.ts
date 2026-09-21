@@ -166,3 +166,70 @@ export async function uploadThumbnailAction(formData: FormData): Promise<{ url?:
   const data = await response.json();
   return { url: data.thumbnail_url };
 }
+
+// ---------- Board (付箋) ----------
+
+export async function createBoardNoteAction(
+  workId: string,
+  formData: FormData
+): Promise<{ error?: string }> {
+  const token = await getToken();
+  if (!token) redirect("/login");
+
+  const body = String(formData.get("body") ?? "").trim();
+  const isPinned = formData.get("is_pinned") === "on";
+  if (!body) return { error: "本文を入力してください" };
+
+  try {
+    await apiFetch(`/api/works/${workId}/board`, {
+      method: "POST",
+      token,
+      body: JSON.stringify({ body, is_pinned: isPinned }),
+    });
+  } catch (err) {
+    return { error: err instanceof ApiError ? err.message : "付箋の追加に失敗しました" };
+  }
+  revalidatePath(`/works/${workId}`);
+  return {};
+}
+
+export async function updateBoardNoteAction(
+  workId: string,
+  noteId: string,
+  body: string,
+  isPinned: boolean
+): Promise<{ error?: string }> {
+  const token = await getToken();
+  if (!token) redirect("/login");
+
+  try {
+    await apiFetch(`/api/works/${workId}/board/${noteId}`, {
+      method: "PUT",
+      token,
+      body: JSON.stringify({ body, is_pinned: isPinned }),
+    });
+  } catch (err) {
+    return { error: err instanceof ApiError ? err.message : "付箋の更新に失敗しました" };
+  }
+  revalidatePath(`/works/${workId}`);
+  return {};
+}
+
+export async function deleteBoardNoteAction(
+  workId: string,
+  noteId: string
+): Promise<{ error?: string }> {
+  const token = await getToken();
+  if (!token) redirect("/login");
+
+  try {
+    await apiFetch(`/api/works/${workId}/board/${noteId}`, {
+      method: "DELETE",
+      token,
+    });
+  } catch (err) {
+    return { error: err instanceof ApiError ? err.message : "付箋の削除に失敗しました" };
+  }
+  revalidatePath(`/works/${workId}`);
+  return {};
+}

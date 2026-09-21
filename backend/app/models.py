@@ -102,3 +102,19 @@ class ReadmeCache(Base):
     fetched_at = Column(DateTime, default=lambda: datetime.now(UTC))
 
     work = relationship("Work", back_populates="readme_cache")
+
+
+class BoardNote(Base):
+    """案件ごとの貼り出しボードの付箋。営業・制作が情報を貼り出して共有する。"""
+
+    __tablename__ = "board_notes"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    work_id = Column(UUID(as_uuid=False), ForeignKey("works.id", ondelete="CASCADE"), nullable=False, index=True)
+    body = Column(Text, nullable=False)  # 付箋の本文
+    author_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+    author_role = Column(String(20), nullable=False)  # 書いた時点の役割（admin/sales/production）
+    author_name = Column(String(100), nullable=False)  # 書いた人の表示名（当時のもの）
+    is_pinned = Column(Boolean, default=False, nullable=False)  # 特に重要な付箋を上部固定
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC))
+    updated_at = Column(DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))

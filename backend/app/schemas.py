@@ -106,3 +106,29 @@ class WorkOut(BaseModel):
 
 class WorkDetailOut(WorkOut):
     readme_content: str | None = None
+
+
+# ---------- Board ----------
+
+class BoardNoteCreate(BaseModel):
+    body: str
+    is_pinned: bool = False
+
+
+class BoardNoteUpdate(BaseModel):
+    body: str | None = None
+    is_pinned: bool | None = None
+
+
+class BoardNoteOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    work_id: str
+    body: str
+    author_id: str
+    author_role: str
+    author_name: str
+    is_pinned: bool
+    created_at: datetime
+    updated_at: datetime

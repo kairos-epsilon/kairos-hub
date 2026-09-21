@@ -22,3 +22,14 @@ export async function clearToken(): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.delete(TOKEN_COOKIE);
 }
+
+export async function getCurrentUser(): Promise<import("@/lib/types").CurrentUser | null> {
+  const token = await getToken();
+  if (!token) return null;
+  try {
+    const { apiFetch } = await import("@/lib/api");
+    return await apiFetch<import("@/lib/types").CurrentUser>("/api/auth/me", { token });
+  } catch {
+    return null;
+  }
+}

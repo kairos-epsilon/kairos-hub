@@ -1,13 +1,15 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { apiFetch, ApiError } from "@/lib/api";
-import { CATEGORY_LABELS, type WorkDetail } from "@/lib/types";
+import { getToken, getCurrentUser } from "@/lib/session";
+import { Board } from "@/components/Board";
+import { CATEGORY_LABELS, type BoardNote, type WorkDetail } from "@/lib/types";
 
 type Params = Promise<{ id: string }>;
 
-async function getWork(id: string): Promise<WorkDetail> {
+async function getWork(id: string, token: string): Promise<WorkDetail> {
   try {
-    return await apiFetch<WorkDetail>(`/api/works/${id}`);
+    return await apiFetch<WorkDetail>(`/api/works/${id}`, { token });
   } catch (err) {
     if (err instanceof ApiError && err.status === 404) {
       notFound();
@@ -16,9 +18,26 @@ async function getWork(id: string): Promise<WorkDetail> {
   }
 }
 
+async function getBoard(id: string, token: string): Promise<BoardNote[]> {
+  try {
+    return await apiFetch<BoardNote[]>(`/api/works/${id}/board`, { token });
+  } catch {
+    return [];
+  }
+}
+
 export default async function WorkDetailPage({ params }: { params: Params }) {
   const { id } = await params;
-  const work = await getWork(id);
+  const token = await getToken();
+  if (!token) redirect("/login");
+
+  const [work, currentUser, notes] = await Promise.all([
+    getWork(id, token),
+    getCurrentUser(),
+    getBoard(id, token),
+  ]);
+
+  if (!currentUser) redirect("/login");
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-12">
@@ -147,6 +166,8 @@ export default async function WorkDetailPage({ params }: { params: Params }) {
             </pre>
           </div>
         )}
+
+        <Board workId={id} initialNotes={notes} currentUser={currentUser} />
       </div>
     </div>
   );

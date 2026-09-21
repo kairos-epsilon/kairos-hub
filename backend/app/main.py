@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.database import Base, engine
-from app.routers import admin_works, auth, tags, works
+from app.routers import admin_works, auth, board, tags, works
 
 
 @asynccontextmanager
@@ -34,6 +34,7 @@ app.include_router(auth.router)
 app.include_router(works.router)
 app.include_router(admin_works.router)
 app.include_router(tags.router)
+app.include_router(board.router)
 
 
 @app.get("/health")

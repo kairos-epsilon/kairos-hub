@@ -1,27 +1,32 @@
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import { apiFetch } from "@/lib/api";
+import { getToken } from "@/lib/session";
 import type { Tag, Work } from "@/lib/types";
 import { WorkCard } from "@/components/WorkCard";
 import { SearchFilters } from "@/components/SearchFilters";
 
 type SearchParams = Promise<{ q?: string; category?: string; tag?: string }>;
 
-async function getWorks(params: { q?: string; category?: string; tag?: string }) {
+async function getWorks(params: { q?: string; category?: string; tag?: string }, token: string) {
   const query = new URLSearchParams();
   if (params.q) query.set("q", params.q);
   if (params.category) query.set("category", params.category);
   if (params.tag) query.set("tag", params.tag);
 
-  return apiFetch<Work[]>(`/api/works?${query.toString()}`);
+  return apiFetch<Work[]>(`/api/works?${query.toString()}`, { token });
 }
 
-async function getTags() {
-  return apiFetch<Tag[]>("/api/tags");
+async function getTags(token: string) {
+  return apiFetch<Tag[]>("/api/tags", { token });
 }
 
 export default async function HomePage({ searchParams }: { searchParams: SearchParams }) {
+  const token = await getToken();
+  if (!token) redirect("/login");
+
   const params = await searchParams;
-  const [works, tags] = await Promise.all([getWorks(params), getTags()]);
+  const [works, tags] = await Promise.all([getWorks(params, token), getTags(token)]);
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-12">

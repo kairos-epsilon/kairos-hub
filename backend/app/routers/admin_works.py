@@ -4,7 +4,7 @@ import uuid
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session, joinedload
 
-from app.auth import get_current_user
+from app.auth import require_work_editor
 from app.config import settings
 from app.database import get_db
 from app.github_client import fetch_readme
@@ -29,7 +29,7 @@ def _resolve_tags(db: Session, tag_names: list[str]) -> list[Tag]:
 @router.get("", response_model=list[WorkOut])
 def list_all_works(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_work_editor),
 ):
     """非公開も含めた全実績一覧（管理ダッシュボード用）"""
     return db.query(Work).options(joinedload(Work.tags)).order_by(Work.created_at.desc()).all()
@@ -39,7 +39,7 @@ def list_all_works(
 def get_work_admin(
     work_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_work_editor),
 ):
     """非公開実績も含めた1件取得（編集画面用）"""
     work = (
@@ -61,7 +61,7 @@ def get_work_admin(
 def create_work(
     payload: WorkCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_work_editor),
 ):
     work = Work(
         **payload.model_dump(exclude={"tag_names"}),
@@ -79,7 +79,7 @@ def update_work(
     work_id: str,
     payload: WorkUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_work_editor),
 ):
     work = db.query(Work).filter(Work.id == work_id).first()
     if work is None:
@@ -101,7 +101,7 @@ def update_work(
 def delete_work(
     work_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_work_editor),
 ):
     work = db.query(Work).filter(Work.id == work_id).first()
     if work is None:
@@ -114,7 +114,7 @@ def delete_work(
 async def fetch_work_readme(
     work_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_work_editor),
 ):
     work = db.query(Work).options(joinedload(Work.tags)).filter(Work.id == work_id).first()
     if work is None:
@@ -144,7 +144,7 @@ async def fetch_work_readme(
 @router.post("/upload-thumbnail")
 async def upload_thumbnail(
     file: UploadFile = File(...),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_work_editor),
 ):
     allowed_ext = {".png", ".jpg", ".jpeg", ".webp"}
     ext = os.path.splitext(file.filename or "")[1].lower()

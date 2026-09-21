@@ -38,3 +38,31 @@ export interface Work {
 export interface WorkDetail extends Work {
   readme_content: string | null;
 }
+
+export type UserRole = "admin" | "sales" | "production" | "editor";
+
+export const ROLE_LABELS: Record<UserRole, string> = {
+  admin: "管理者",
+  sales: "営業",
+  production: "制作",
+  editor: "管理者",
+};
+
+export interface CurrentUser {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+}
+
+export interface BoardNote {
+  id: string;
+  work_id: string;
+  body: string;
+  author_id: string;
+  author_role: UserRole;
+  author_name: string;
+  is_pinned: boolean;
+  created_at: string;
+  updated_at: string;
+}
