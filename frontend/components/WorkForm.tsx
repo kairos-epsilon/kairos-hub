@@ -1,13 +1,43 @@
 "use client";
 
-import { useActionState, useState } from "react";
-import type { ActionState } from "@/app/actions";
-import { uploadThumbnailAction } from "@/app/actions";
+import { useState } from "react";
+import type { WorkInput } from "@/lib/demo-store";
 import { CATEGORY_LABELS, type WorkCategory, type WorkDetail } from "@/lib/types";
 
 const CATEGORIES = Object.keys(CATEGORY_LABELS) as WorkCategory[];
 
-const initialState: ActionState = undefined;
+// デモはブラウザ内に保存するため、画像は小さいものだけ受け付ける
+const MAX_THUMBNAIL_BYTES = 250 * 1024;
+
+function buildWorkInput(formData: FormData, thumbnailUrl: string): WorkInput {
+  const tagNames = String(formData.get("tags") ?? "")
+    .split(",")
+    .map((t) => t.trim())
+    .filter(Boolean);
+  const amountRaw = String(formData.get("amount") ?? "").replace(/[,\s]/g, "");
+  const amount = amountRaw ? Number(amountRaw) : null;
+  const text = (key: string) => String(formData.get(key) ?? "") || null;
+
+  return {
+    title: String(formData.get("title") ?? ""),
+    category: String(formData.get("category") ?? "lp") as WorkCategory,
+    client_name: text("client_name"),
+    client_industry: text("client_industry"),
+    description: text("description"),
+    sales_rep: text("sales_rep"),
+    tech_rep: text("tech_rep"),
+    amount: amount !== null && Number.isFinite(amount) ? amount : null,
+    ordered_at: text("ordered_at"),
+    delivered_at: text("delivered_at"),
+    public_url: text("public_url"),
+    data_url: text("data_url"),
+    github_url: text("github_url"),
+    thumbnail_url: thumbnailUrl || null,
+    memo: text("memo"),
+    is_published: formData.get("is_published") === "on",
+    tag_names: [...new Set(tagNames)],
+  };
+}
 
 const inputClass =
   "mt-1 w-full rounded-sm border border-[var(--color-line)] bg-[var(--color-paper-raised)] px-4 py-2 text-sm focus:border-[var(--color-brass)] focus:outline-none";
@@ -16,36 +46,48 @@ const sectionTitleClass =
   "font-mono text-[11px] uppercase tracking-[0.15em] text-[var(--color-brass)] border-b border-[var(--color-line)] pb-2";
 
 interface WorkFormProps {
-  action: (prevState: ActionState, formData: FormData) => Promise<ActionState>;
+  /** 保存する。エラー文を返したら画面に出し、nullなら成功として扱う */
+  onSave: (input: WorkInput) => string | null;
   initialWork?: WorkDetail;
   submitLabel: string;
 }
 
-export function WorkForm({ action, initialWork, submitLabel }: WorkFormProps) {
-  const [state, formAction, isPending] = useActionState(action, initialState);
+export function WorkForm({ onSave, initialWork, submitLabel }: WorkFormProps) {
+  const [error, setError] = useState<string | null>(null);
   const [thumbnailUrl, setThumbnailUrl] = useState(initialWork?.thumbnail_url ?? "");
   const [uploading, setUploading] = useState(false);
 
-  async function handleThumbnailChange(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleThumbnailChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    setUploading(true);
-    const formData = new FormData();
-    formData.set("file", file);
-    const result = await uploadThumbnailAction(formData);
-    setUploading(false);
-
-    if (result.url) {
-      setThumbnailUrl(result.url);
+    if (file.size > MAX_THUMBNAIL_BYTES) {
+      setError("デモでは画像は250KBまでです。小さい画像を選んでください。");
+      e.target.value = "";
+      return;
     }
+    setError(null);
+    setUploading(true);
+    const reader = new FileReader();
+    reader.onload = () => {
+      setThumbnailUrl(String(reader.result));
+      setUploading(false);
+    };
+    reader.onerror = () => {
+      setError("画像を読み込めませんでした。");
+      setUploading(false);
+    };
+    reader.readAsDataURL(file);
   }
 
   return (
-    <form action={formAction} className="flex flex-col gap-8">
-      <input type="hidden" name="thumbnail_url" value={thumbnailUrl} />
-
-      {/* --- 基本情報 --- */}
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        setError(onSave(buildWorkInput(new FormData(e.currentTarget), thumbnailUrl)));
+      }}
+      className="flex flex-col gap-8"
+    >
+            {/* --- 基本情報 --- */}
       <div className="flex flex-col gap-4">
         <p className={sectionTitleClass}>基本情報</p>
 
@@ -146,7 +188,7 @@ export function WorkForm({ action, initialWork, submitLabel }: WorkFormProps) {
         <div>
           <label className={labelClass}>サムネイル画像（任意）</label>
           <input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleThumbnailChange} className="mt-1 block text-sm text-[var(--color-ink-soft)]" />
-          {uploading && <p className="mt-1 font-mono text-[11px] text-[var(--color-ink-muted)]">アップロード中…</p>}
+          {uploading && <p className="mt-1 font-mono text-[11px] text-[var(--color-ink-muted)]">読み込み中…</p>}
           {thumbnailUrl && (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={thumbnailUrl} alt="thumbnail preview" className="mt-2 h-24 rounded-sm border border-[var(--color-line)]" />
@@ -159,16 +201,16 @@ export function WorkForm({ action, initialWork, submitLabel }: WorkFormProps) {
         </label>
       </div>
 
-      {state?.error && (
-        <p className="rounded-sm bg-red-50 px-3 py-2 text-sm text-red-700">{state.error}</p>
+      {error && (
+        <p className="rounded-sm bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
       )}
 
       <button
         type="submit"
-        disabled={isPending || uploading}
+        disabled={uploading}
         className="w-fit rounded-sm bg-[var(--color-ink)] px-5 py-2.5 font-mono text-sm text-[var(--color-paper)] hover:bg-[var(--color-ink-soft)] disabled:opacity-60"
       >
-        {isPending ? "保存中…" : submitLabel}
+        {submitLabel}
       </button>
     </form>
   );

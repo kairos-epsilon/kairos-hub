@@ -1,12 +1,15 @@
+"use client";
+
 import Link from "next/link";
-import { getCurrentUser } from "@/lib/session";
-import { logoutAction } from "@/app/actions";
+import { useRouter } from "next/navigation";
+import { useDemo } from "@/lib/demo-session";
 import { ROLE_LABELS } from "@/lib/types";
 
 const WORK_EDITOR_ROLES = ["admin", "sales", "editor"];
 
-export async function Header() {
-  const user = await getCurrentUser();
+export function Header() {
+  const { user, logout } = useDemo();
+  const router = useRouter();
 
   return (
     <header className="border-b border-[var(--color-line)] bg-[var(--color-paper-raised)]">
@@ -34,7 +37,13 @@ export async function Header() {
               <span className="rounded-sm bg-[var(--color-paper)] px-2 py-1 text-[11px] text-[var(--color-ink-muted)]">
                 {ROLE_LABELS[user.role]}・{user.name}
               </span>
-              <form action={logoutAction}>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  logout();
+                  router.push("/login");
+                }}
+              >
                 <button
                   type="submit"
                   className="rounded-sm border border-[var(--color-line)] px-3 py-1.5 text-[var(--color-ink-soft)] hover:border-[var(--color-brass)] hover:text-[var(--color-ink)]"

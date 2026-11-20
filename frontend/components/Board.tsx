@@ -1,12 +1,8 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
-import {
-  createBoardNoteAction,
-  deleteBoardNoteAction,
-  updateBoardNoteAction,
-} from "@/app/actions";
+import { useMemo, useState } from "react";
+import { useDemo } from "@/lib/demo-session";
+import { addNote, canModifyNote, deleteNote, listNotes, updateNote } from "@/lib/demo-store";
 import { ROLE_LABELS, type BoardNote, type CurrentUser } from "@/lib/types";
 
 const roleColor: Record<string, string> = {
@@ -16,51 +12,34 @@ const roleColor: Record<string, string> = {
   editor: "var(--color-ink)",
 };
 
-function canModify(note: BoardNote, user: CurrentUser): boolean {
-  if (user.role === "admin" || user.role === "editor") return true;
-  return note.author_role === user.role;
-}
-
 export function Board({
   workId,
-  initialNotes,
   currentUser,
 }: {
   workId: string;
-  initialNotes: BoardNote[];
   currentUser: CurrentUser;
 }) {
-  const router = useRouter();
+  const { rev, bump } = useDemo();
   const [body, setBody] = useState("");
   const [isPinned, setIsPinned] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
-
-  // 擬似リアルタイム: 30秒ごとにサーバーコンポーネントを再取得
-  useEffect(() => {
-    const timer = setInterval(() => {
-      router.refresh();
-    }, 30000);
-    return () => clearInterval(timer);
-  }, [router]);
+  const isPending = false;
+  // rev は、付箋を追加・編集・削除したあとに読み直すために依存へ入れている
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const initialNotes = useMemo(() => listNotes(workId), [workId, rev]);
 
   function handleAdd(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     if (!body.trim()) return;
-    const fd = new FormData();
-    fd.set("body", body);
-    if (isPinned) fd.set("is_pinned", "on");
-    startTransition(async () => {
-      const res = await createBoardNoteAction(workId, fd);
-      if (res.error) {
-        setError(res.error);
-      } else {
-        setBody("");
-        setIsPinned(false);
-        router.refresh();
-      }
-    });
+    const err = addNote(workId, currentUser, body, isPinned);
+    if (err) {
+      setError(err);
+    } else {
+      setBody("");
+      setIsPinned(false);
+      bump();
+    }
   }
 
   return (
@@ -70,7 +49,7 @@ export function Board({
           ボード（連絡・貼り出し）
         </h2>
         <span className="font-mono text-[10px] text-[var(--color-ink-muted)]">
-          {ROLE_LABELS[currentUser.role]}として表示中・30秒ごと自動更新
+          {ROLE_LABELS[currentUser.role]}として表示中
         </span>
       </div>
 
@@ -111,7 +90,8 @@ export function Board({
             key={note.id}
             note={note}
             workId={workId}
-            editable={canModify(note, currentUser)}
+            editable={canModifyNote(note, currentUser)}
+            currentUser={currentUser}
           />
         ))}
       </div>
@@ -123,39 +103,35 @@ function NoteItem({
   note,
   workId,
   editable,
+  currentUser,
 }: {
   note: BoardNote;
   workId: string;
   editable: boolean;
+  currentUser: CurrentUser;
 }) {
-  const router = useRouter();
+  const { bump } = useDemo();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(note.body);
-  const [isPending, startTransition] = useTransition();
+  const isPending = false;
 
   const accent = roleColor[note.author_role] ?? "var(--color-ink)";
 
   function save() {
-    startTransition(async () => {
-      await updateBoardNoteAction(workId, note.id, draft, note.is_pinned);
-      setEditing(false);
-      router.refresh();
-    });
+    updateNote(workId, note.id, currentUser, draft, note.is_pinned);
+    setEditing(false);
+    bump();
   }
 
   function togglePin() {
-    startTransition(async () => {
-      await updateBoardNoteAction(workId, note.id, note.body, !note.is_pinned);
-      router.refresh();
-    });
+    updateNote(workId, note.id, currentUser, note.body, !note.is_pinned);
+    bump();
   }
 
   function remove() {
     if (!confirm("この付箋を削除しますか？")) return;
-    startTransition(async () => {
-      await deleteBoardNoteAction(workId, note.id);
-      router.refresh();
-    });
+    deleteNote(workId, note.id, currentUser);
+    bump();
   }
 
   return (

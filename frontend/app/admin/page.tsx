@@ -1,24 +1,15 @@
+"use client";
+
+import { useMemo } from "react";
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { apiFetch, ApiError } from "@/lib/api";
-import { getToken } from "@/lib/session";
-import { deleteWorkAction } from "@/app/actions";
-import { type Work } from "@/lib/types";
+import { RequireAuth, useDemo } from "@/lib/demo-session";
+import { deleteWork, listAllWorks } from "@/lib/demo-store";
 
-export default async function AdminDashboardPage() {
-  const token = await getToken();
-  if (!token) redirect("/login");
-
-  let works: Work[];
-  try {
-    works = await apiFetch<Work[]>("/api/admin/works", { token });
-  } catch (err) {
-    // 制作アカウントは管理画面にアクセスできない（403）→ 一覧へ
-    if (err instanceof ApiError && err.status === 403) {
-      redirect("/");
-    }
-    throw err;
-  }
+function Dashboard() {
+  const { rev, bump } = useDemo();
+  // rev は、実績を削除・更新したあとに読み直すために依存へ入れている
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const works = useMemo(() => listAllWorks(), [rev]);
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-12">
@@ -78,14 +69,17 @@ export default async function AdminDashboardPage() {
                     >
                       編集
                     </Link>
-                    <form action={deleteWorkAction.bind(null, work.id)}>
-                      <button
-                        type="submit"
-                        className="font-mono text-xs text-red-600 hover:text-red-800"
-                      >
-                        削除
-                      </button>
-                    </form>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!confirm(`「${work.title}」を削除しますか？`)) return;
+                        deleteWork(work.id);
+                        bump();
+                      }}
+                      className="font-mono text-xs text-red-600 hover:text-red-800"
+                    >
+                      削除
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -102,4 +96,9 @@ export default async function AdminDashboardPage() {
       </div>
     </div>
   );
+}
+
+export default function AdminDashboardPage() {
+  // 制作アカウントは管理画面に入れない（元のAPIの403と同じ扱いで一覧へ戻す）
+  return <RequireAuth workEditorOnly>{() => <Dashboard />}</RequireAuth>;
 }

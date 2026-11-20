@@ -1,47 +1,30 @@
-import { Suspense } from "react";
-import { redirect } from "next/navigation";
-import { apiFetch } from "@/lib/api";
-import { getToken } from "@/lib/session";
-import type { Tag, Work } from "@/lib/types";
+"use client";
+
+import { Suspense, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
+import { RequireAuth, useDemo } from "@/lib/demo-session";
+import { listTags, listWorks } from "@/lib/demo-store";
+import type { UserRole } from "@/lib/types";
 import { WorkCard } from "@/components/WorkCard";
 import { SearchFilters } from "@/components/SearchFilters";
 
-type SearchParams = Promise<{ q?: string; category?: string; tag?: string }>;
+function WorkList({ role }: { role: UserRole }) {
+  const params = useSearchParams();
+  const { rev } = useDemo();
+  const q = params.get("q") ?? undefined;
+  const category = params.get("category") ?? undefined;
+  const tag = params.get("tag") ?? undefined;
 
-async function getWorks(params: { q?: string; category?: string; tag?: string }, token: string) {
-  const query = new URLSearchParams();
-  if (params.q) query.set("q", params.q);
-  if (params.category) query.set("category", params.category);
-  if (params.tag) query.set("tag", params.tag);
-
-  return apiFetch<Work[]>(`/api/works?${query.toString()}`, { token });
-}
-
-async function getTags(token: string) {
-  return apiFetch<Tag[]>("/api/tags", { token });
-}
-
-export default async function HomePage({ searchParams }: { searchParams: SearchParams }) {
-  const token = await getToken();
-  if (!token) redirect("/login");
-
-  const params = await searchParams;
-  const [works, tags] = await Promise.all([getWorks(params, token), getTags(token)]);
+  const { works, tags } = useMemo(
+    () => ({ works: listWorks(role, { q, category, tag }), tags: listTags() }),
+    // rev は、デモデータの初期化や編集のあとに一覧を読み直すために依存へ入れている
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [role, q, category, tag, rev],
+  );
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-12">
-      <div className="mb-10 max-w-2xl">
-        <h1 className="font-display text-2xl text-[var(--color-ink)]">
-          実績管理
-        </h1>
-        <p className="mt-2 text-sm text-[var(--color-ink-soft)]">
-          受注・納品した案件の記録。案件名・クライアント・担当者で検索できます。
-        </p>
-      </div>
-
-      <Suspense fallback={<div className="h-24" />}>
-        <SearchFilters availableTags={tags.map((t) => t.name)} />
-      </Suspense>
+    <>
+      <SearchFilters availableTags={tags.map((t) => t.name)} />
 
       <div className="mt-10">
         {works.length === 0 ? (
@@ -56,6 +39,26 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
           </div>
         )}
       </div>
-    </div>
+    </>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <RequireAuth>
+      {(user) => (
+        <div className="mx-auto max-w-6xl px-6 py-12">
+          <div className="mb-10 max-w-2xl">
+            <h1 className="font-display text-2xl text-[var(--color-ink)]">実績管理</h1>
+            <p className="mt-2 text-sm text-[var(--color-ink-soft)]">
+              受注・納品した案件の記録。案件名・クライアント・担当者で検索できます。
+            </p>
+          </div>
+          <Suspense fallback={<div className="h-24" />}>
+            <WorkList role={user.role} />
+          </Suspense>
+        </div>
+      )}
+    </RequireAuth>
   );
 }

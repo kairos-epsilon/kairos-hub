@@ -1,29 +1,51 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { fetchReadmeAction } from "@/app/actions";
+import { useState } from "react";
+import { useDemo } from "@/lib/demo-session";
+import { saveReadme } from "@/lib/demo-store";
+
+// GitHub の公開API（認証なし・1時間あたり60回まで）から README を取得する
+async function fetchReadme(githubUrl: string): Promise<string> {
+  const m = githubUrl.match(/github\.com\/([^/]+)\/([^/#?]+)/);
+  if (!m) throw new Error("GitHub URLの形式が正しくありません");
+  const repo = m[2].replace(/\.git$/, "");
+  const res = await fetch(`https://api.github.com/repos/${m[1]}/${repo}/readme`, {
+    headers: { Accept: "application/vnd.github.v3+json" },
+  });
+  if (res.status === 404) throw new Error("READMEが見つかりませんでした（非公開リポジトリの可能性があります）");
+  if (!res.ok) throw new Error("READMEの取得に失敗しました。時間をおいてお試しください");
+  const data = await res.json();
+  const bin = atob(String(data.content ?? "").replace(/\n/g, ""));
+  return new TextDecoder("utf-8").decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)));
+}
 
 export function ReadmeFetchButton({
   workId,
+  githubUrl,
   currentReadme,
 }: {
   workId: string;
+  githubUrl: string;
   currentReadme: string | null;
 }) {
+  const { bump } = useDemo();
   const [readme, setReadme] = useState(currentReadme);
   const [error, setError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
+  const [isPending, setPending] = useState(false);
 
-  function handleFetch() {
+  async function handleFetch() {
     setError(null);
-    startTransition(async () => {
-      const result = await fetchReadmeAction(workId);
-      if ("error" in result) {
-        setError(result.error);
-      } else {
-        setReadme(result.readme_content);
-      }
-    });
+    setPending(true);
+    try {
+      const content = await fetchReadme(githubUrl);
+      saveReadme(workId, content);
+      setReadme(content);
+      bump();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "READMEの取得に失敗しました");
+    } finally {
+      setPending(false);
+    }
   }
 
   return (

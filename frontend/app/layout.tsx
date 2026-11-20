@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Fraunces, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/Header";
+import { DemoProvider } from "@/lib/demo-session";
+import { DemoBanner } from "@/components/DemoBanner";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -24,7 +26,7 @@ const plexMono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   title: "Kairos Hub | 実績管理システム",
-  description: "Kairosの制作実績を一元管理・検索するための社内ツール",
+  description: "制作実績を案件単位で管理する台帳システム（公開デモ版・ブラウザ内にデータを保存）",
 };
 
 export default function RootLayout({
@@ -37,8 +39,11 @@ export default function RootLayout({
       <body
         className={`${fraunces.variable} ${plexSans.variable} ${plexMono.variable} antialiased`}
       >
-        <Header />
-        <main className="min-h-screen">{children}</main>
+        <DemoProvider>
+          <DemoBanner />
+          <Header />
+          <main className="min-h-screen">{children}</main>
+        </DemoProvider>
       </body>
     </html>
   );

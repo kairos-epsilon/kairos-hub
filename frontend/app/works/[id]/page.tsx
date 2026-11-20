@@ -1,43 +1,29 @@
-import { notFound, redirect } from "next/navigation";
+"use client";
+
+import { useMemo } from "react";
+import { useParams } from "next/navigation";
 import Link from "next/link";
-import { apiFetch, ApiError } from "@/lib/api";
-import { getToken, getCurrentUser } from "@/lib/session";
+import { RequireAuth, useDemo } from "@/lib/demo-session";
+import { getWork } from "@/lib/demo-store";
 import { Board } from "@/components/Board";
-import { CATEGORY_LABELS, type BoardNote, type WorkDetail } from "@/lib/types";
+import { CATEGORY_LABELS, type CurrentUser } from "@/lib/types";
 
-type Params = Promise<{ id: string }>;
+function WorkDetailView({ id, currentUser }: { id: string; currentUser: CurrentUser }) {
+  const { rev } = useDemo();
+  // rev は、付箋や実績を編集したあとに読み直すために依存へ入れている
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const work = useMemo(() => getWork(id, currentUser.role), [id, currentUser.role, rev]);
 
-async function getWork(id: string, token: string): Promise<WorkDetail> {
-  try {
-    return await apiFetch<WorkDetail>(`/api/works/${id}`, { token });
-  } catch (err) {
-    if (err instanceof ApiError && err.status === 404) {
-      notFound();
-    }
-    throw err;
+  if (!work) {
+    return (
+      <div className="mx-auto max-w-4xl px-6 py-12">
+        <Link href="/" className="font-mono text-xs text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]">
+          ← 実績一覧に戻る
+        </Link>
+        <p className="mt-8 text-sm text-[var(--color-ink-soft)]">この実績は見つかりませんでした。</p>
+      </div>
+    );
   }
-}
-
-async function getBoard(id: string, token: string): Promise<BoardNote[]> {
-  try {
-    return await apiFetch<BoardNote[]>(`/api/works/${id}/board`, { token });
-  } catch {
-    return [];
-  }
-}
-
-export default async function WorkDetailPage({ params }: { params: Params }) {
-  const { id } = await params;
-  const token = await getToken();
-  if (!token) redirect("/login");
-
-  const [work, currentUser, notes] = await Promise.all([
-    getWork(id, token),
-    getCurrentUser(),
-    getBoard(id, token),
-  ]);
-
-  if (!currentUser) redirect("/login");
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-12">
@@ -167,8 +153,13 @@ export default async function WorkDetailPage({ params }: { params: Params }) {
           </div>
         )}
 
-        <Board workId={id} initialNotes={notes} currentUser={currentUser} />
+        <Board workId={id} currentUser={currentUser} />
       </div>
     </div>
   );
+}
+
+export default function WorkDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  return <RequireAuth>{(user) => <WorkDetailView id={id} currentUser={user} />}</RequireAuth>;
 }
