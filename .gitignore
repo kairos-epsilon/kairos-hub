@@ -27,3 +27,4 @@ backend/uploads/
 # エディタ
 .vscode/
 .idea/
+*.tsbuildinfo
